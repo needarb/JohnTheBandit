@@ -21,6 +21,7 @@ public class MainWindow extends JFrame
         label.setFont(new Font("Times New Roman",Font.BOLD,48));
         add(label);
         startMusic();
+        System.out.println("Started");
         pack();
         setVisible(true);
     }
@@ -28,23 +29,9 @@ public class MainWindow extends JFrame
     private void startMusic()
     {
         String path = "JohnTheBandit/" + Constants.MUSIC_PATH + "a_song.mp3";
-        File file = new File(path);
-        FileInputStream fis = null;
-        try
-        {
-            fis = new FileInputStream(file);
-        } catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            Player player = new Player(fis);
-            player.play();
-        } catch (JavaLayerException e)
-        {
-            e.printStackTrace();
-        }
+        PlayMusic player = new PlayMusic(path);
+        Thread t = new Thread(player);
+        t.start();
 
     }
 }
