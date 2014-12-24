@@ -136,7 +136,12 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
         timer.start();
     }
 
-    private BlockingQueue objectsToAdd = new ArrayBlockingQueue(100);
+    public void queueObject(OnScreenObject object)
+    {
+        objectsToAdd.add(object);
+    }
+
+    private BlockingQueue<OnScreenObject> objectsToAdd = new ArrayBlockingQueue<OnScreenObject>(10);
 
     @Override
     public void actionPerformed(ActionEvent e)
@@ -151,6 +156,11 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
                      ao.cycle();
                      somethingChanged = true;
                  }
+        for(OnScreenObject o: objectsToAdd)
+        {
+            addObject(o,false);
+        }
+        objectsToAdd.clear();
         if(somethingChanged)
             repaint();
 
