@@ -24,8 +24,6 @@ public class PlayingField implements KeyListener
     private int tileWidth = 30;
     private int tileHeight = 30;
     private NonAnimatedObject[][] backgroundTiles;
-    private BufferedImage backgroundImage;
-    private Map<String, Character> imageNames = new HashMap<String, Character>();
     private ArrayList<Actor> actors;
 
     public PlayingField()
