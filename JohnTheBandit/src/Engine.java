@@ -1,25 +1,29 @@
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by needa_000 on 12/23/2014.
  */
-public class Engine extends JPanel implements ImageChangeListener,Runnable, ActionListener
+public class Engine extends JPanel implements Runnable, ActionListener
 {
     public static final int WIDTH = 500;
     public static final int HEIGHT = 500;
     public static final int IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
 
+    private BlockingQueue<OnScreenObject> objectsToAdd = new ArrayBlockingQueue<OnScreenObject>(500);
+    private BlockingQueue<OnScreenObject> objectsToRemove = new ArrayBlockingQueue<OnScreenObject>(500);
+    private BlockingQueue<Integer> layersToClear = new ArrayBlockingQueue<Integer>(25);
+    private BlockingQueue<MoveObject> objectsToMove = new ArrayBlockingQueue<MoveObject>(500);
+
     private BufferedImage backBuffer;
+
     public Engine()
     {
         super();
@@ -38,8 +42,9 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
     @Override
     public void paint(Graphics g)
     {
+        long before = System.currentTimeMillis();
         Graphics2D backBufferGraphics = (Graphics2D) backBuffer.getGraphics();
-        backBufferGraphics.clearRect(0,0,backBuffer.getWidth(), backBuffer.getHeight());
+        backBufferGraphics.clearRect(0, 0, backBuffer.getWidth(), backBuffer.getHeight());
         for (int i = 0; i < objectLayers.size(); i++)
         {
             if(generatedPermaLayers.containsKey(i))
@@ -48,37 +53,15 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
                 continue;
             }
             for(OnScreenObject o:objectLayers.get(i))
-                backBufferGraphics.drawImage(o.getImageToDisplay(),o.getX(),o.getY(),null);
+                backBufferGraphics.drawImage(o.getImageToDisplay(), o.getX(), o.getY(), null);
 
         }
         g.drawImage(backBuffer,0,0,null);
+        System.out.println(System.currentTimeMillis() - before);
     }
 
-    @Override
-    public void onChangeLocation(OnScreenObject changedObject, int oldX, int oldY)
-    {
-        int zLayer = changedObject.getZLayer();
-        if(generatedPermaLayers.containsKey(zLayer))
-            saveLayer(zLayer);
-    }
-
-    @Override
-    public void onChangeImage(OnScreenObject changedObject)
-    {
-        onChangeLocation(changedObject,-1,-1);
-    }
 
     public void addObject(OnScreenObject objectToAdd)
-    {
-        addObject(objectToAdd,true,false);
-    }
-
-    public void addObject(OnScreenObject objectToAdd, boolean repaint)
-    {
-        addObject(objectToAdd, repaint,false);
-    }
-
-    public void addObject(OnScreenObject objectToAdd,boolean repaint, boolean resave)
     {
         int zLayer = objectToAdd.getZLayer();
         while(objectLayers.size() <= zLayer)
@@ -91,30 +74,6 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
                 animatedObjectsByFrameGap.put(framesBetween, (new ArrayList<AnimatedObject>()));
             animatedObjectsByFrameGap.get(framesBetween).add((AnimatedObject) objectToAdd);
         }
-        if(resave && generatedPermaLayers.containsKey(zLayer))
-            saveLayer(zLayer);
-        if(repaint)
-            repaint();
-    }
-
-    public void addManyObjects(ArrayList<OnScreenObject> objectsToAdd)
-    {
-        addManyObjects(objectsToAdd,true);
-    }
-
-    public void addManyObjects(ArrayList<OnScreenObject> objectsToAdd, boolean repaint)
-    {
-        Set<Integer> permaLayersChanged = new HashSet<Integer>();
-        for(OnScreenObject o: objectsToAdd)
-        {
-            addObject(o, false, false);
-            if(generatedPermaLayers.containsKey(o.getZLayer()))
-                permaLayersChanged.add(o.getZLayer());
-        }
-        for(Integer z:permaLayersChanged)
-            saveLayer(z);
-        if(repaint)
-            repaint();
     }
 
     private void saveLayer(int zLayer)
@@ -133,15 +92,43 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
     {
         timeElapsed = 0;
         Timer timer = new Timer(40, this);
+        System.out.println("Starting engine");
         timer.start();
     }
 
-    public void queueObject(OnScreenObject object)
+    public void queueAddObject(OnScreenObject object)
     {
+        System.out.println("Queuing object to layer " + object.getZLayer());
         objectsToAdd.add(object);
     }
 
-    private BlockingQueue<OnScreenObject> objectsToAdd = new ArrayBlockingQueue<OnScreenObject>(10);
+
+    public void queueAddManyObjects(ArrayList<NonAnimatedObject> toAdd)
+    {
+        objectsToAdd.addAll(toAdd);
+    }
+
+    public void queueRemoveObject(int x, int y, int zLayer)
+    {
+        for(OnScreenObject o: objectLayers.get(zLayer))
+        {
+            if(o.getX() == x && o.getY() == y)
+            {
+                objectsToRemove.add(o);
+                return;
+            }
+        }
+    }
+
+    public void queueClearLayer(int zLayer)
+    {
+        layersToClear.add(zLayer);
+    }
+
+    public void queueMoveObject(OnScreenObject o, int newX, int newY)
+    {
+        objectsToMove.add(new MoveObject(o,newX,newY));
+    }
 
     @Override
     public void actionPerformed(ActionEvent e)
@@ -149,21 +136,86 @@ public class Engine extends JPanel implements ImageChangeListener,Runnable, Acti
         timeElapsed += 100;
         frameCount++;
         boolean somethingChanged = false;
+        HashSet<Integer> changedLayers = new HashSet<Integer>();
         for(Integer frameDifference: animatedObjectsByFrameGap.keySet())
             if(frameCount % frameDifference == 0)
                  for(AnimatedObject ao:animatedObjectsByFrameGap.get(frameDifference))
                  {
                      ao.cycle();
+                     changedLayers.add(ao.getZLayer());
                      somethingChanged = true;
                  }
+        for(Integer z:layersToClear)
+        {
+            if(generatedPermaLayers.containsKey(z))
+                generatedPermaLayers.remove(z);
+            if(objectLayers.size() > z)
+                objectLayers.get(z).clear();
+        }
+        layersToClear.clear();
+        for(OnScreenObject o: objectsToRemove)
+        {
+            objectLayers.get(o.getZLayer()).remove(o);
+            changedLayers.add(o.getZLayer());
+            somethingChanged = true;
+        }
+        objectsToRemove.clear();
         for(OnScreenObject o: objectsToAdd)
         {
-            addObject(o,false);
+            System.out.println("Adding object to layer " + o.getZLayer());
+            addObject(o);
+            changedLayers.add(o.getZLayer());
+            somethingChanged = true;
         }
         objectsToAdd.clear();
+        for(MoveObject mo: objectsToMove)
+        {
+            mo.applyMove();
+            changedLayers.add(mo.getOnScreenObject().getZLayer());
+            somethingChanged = true;
+        }
+        objectsToMove.clear();
+        for(Integer i: changedLayers)
+            saveLayer(i);
+
         if(somethingChanged)
             repaint();
 
+    }
+
+    private class MoveObject
+    {
+        private OnScreenObject o;
+        private int x;
+        private int y;
+
+        public MoveObject(OnScreenObject o, int x, int y)
+        {
+            this.o = o;
+            this.x = x;
+            this.y = y;
+        }
+
+        public OnScreenObject getOnScreenObject()
+        {
+            return o;
+        }
+
+        public int getX()
+        {
+            return x;
+        }
+
+        public int getY()
+        {
+            return y;
+        }
+
+        public void applyMove()
+        {
+            o.setX(x);
+            o.setY(y);
+        }
     }
 }
 

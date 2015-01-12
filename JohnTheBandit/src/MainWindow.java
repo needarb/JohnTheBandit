@@ -14,21 +14,24 @@ import javazoom.jl.player.Player;
  */
 public class MainWindow extends JFrame
 {
+    public static void main(String[] args)
+    {
+        MainWindow m = new MainWindow();
+    }
     public MainWindow()
     {
         super("John The Bandit");
-        JLabel label = new JLabel("It's working!");
-        label.setFont(new Font("Times New Roman",Font.BOLD,48));
-        add(label);
-        startMusic();
-        System.out.println("Started");
+        PlayingField pf = new PlayingField();
+        addKeyListener(pf);
+        add(pf.getDisplay());
         pack();
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
     }
 
     private void startMusic()
     {
-        String path = "JohnTheBandit/" + Constants.MUSIC_PATH + "a_song.mp3";
+        String path = "JohnTheBandit/" + Constants.SOUNDS_MUSIC_PATH + "a_song.mp3";
         PlayMusic player = new PlayMusic(path);
         Thread t = new Thread(player);
         t.start();

@@ -8,13 +8,13 @@ public class NonAnimatedObject extends OnScreenObject
 {
     private Image image;
 
-    public NonAnimatedObject(BufferedImage image,int x, int y, int z)
+    public NonAnimatedObject(Image image,int x, int y, int z)
     {
         super(x,y,z);
         this.image = image;
     }
 
-    public void setImageToDisplay(Image imge)
+    public void setImageToDisplay(Image image)
     {
         this.image = image;
     }
