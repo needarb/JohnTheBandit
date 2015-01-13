@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * The playing field grid. Interfaces with the engine to display the game
  * Created by needa_000 on 1/7/2015.
  */
 public class PlayingField implements KeyListener
@@ -25,6 +26,7 @@ public class PlayingField implements KeyListener
     private int tileHeight = 30;
     private NonAnimatedObject[][] backgroundTiles;
     private ArrayList<Actor> actors;
+    private Map<Character, Image> images = new HashMap<Character, Image>();
 
     public PlayingField()
     {
@@ -36,24 +38,23 @@ public class PlayingField implements KeyListener
         t.start();
     }
 
-
+    /**
+     * Sets the image for the tile at the given grid location
+     *
+     * @param x Grid x
+     * @param y Grid y
+     * @param b The new image
+     */
     public void setTile(int x, int y, BufferedImage b)
     {
         engine.queueRemoveObject(x, y, BACKGROUND);
         engine.queueAddObject(new NonAnimatedObject(b, x, y, BACKGROUND));
     }
 
-
-    public JPanel getDisplay()
-    {
-        return engine;
-    }
-
-    private Map<Character, Image> images = new HashMap<Character, Image>();
-
     /**
-     * Ugly af sorry
-     * @param name name of map with .map file extension
+     * Load the map with the given name from the map folder
+     *
+     * @param name Name of map with the .map file extension
      */
     public void loadMap(String name)
     {
@@ -106,17 +107,29 @@ public class PlayingField implements KeyListener
 
     public void addActor(String imageName)
     {
-        addActor(imageName,0,0);
+        addActor(imageName, 0, 0);
     }
+
+    /**
+     * Creates an actor and adds it to the grid
+     *
+     * @param imageName Image for the actor
+     * @param x         Actor's grid x
+     * @param y         Actor's grid y
+     */
     public void addActor(String imageName, int x, int y)
     {
         System.out.println("Adding actor");
-        Actor a = new Actor(this,x, y, imageLoader.loadActor(imageName, tileWidth, tileHeight));
+        Actor a = new Actor(this, x, y, imageLoader.loadActor(imageName, tileWidth, tileHeight));
         System.out.println("Adding actor's image to screen");
         engine.queueAddObject(a.getOnScreenObject());
         actors.add(a);
     }
 
+    public JPanel getDisplay()
+    {
+        return engine;
+    }
 
     public Engine getEngine()
     {
@@ -141,20 +154,20 @@ public class PlayingField implements KeyListener
     @Override
     public void keyTyped(KeyEvent e)
     {
-        if(e.getKeyChar() == 'a')
-            for(Actor a: actors)
-                a.setLocation(a.getX()-1,a.getY());
-        if(e.getKeyChar() == 'd')
-            for(Actor a: actors)
-                a.setLocation(a.getX()+1,a.getY());
-        if(e.getKeyChar() == 'w')
-            for(Actor a: actors)
-                a.setLocation(a.getX(),a.getY()-1);
-        if(e.getKeyChar() == 's')
-            for(Actor a: actors)
-                a.setLocation(a.getX(),a.getY()+1);
-        if(e.getKeyChar() == 'o')
-           addActor("john.png",4,4);
+        if (e.getKeyChar() == 'a')
+            for (Actor a : actors)
+                a.setLocation(a.getX() - 1, a.getY());
+        if (e.getKeyChar() == 'd')
+            for (Actor a : actors)
+                a.setLocation(a.getX() + 1, a.getY());
+        if (e.getKeyChar() == 'w')
+            for (Actor a : actors)
+                a.setLocation(a.getX(), a.getY() - 1);
+        if (e.getKeyChar() == 's')
+            for (Actor a : actors)
+                a.setLocation(a.getX(), a.getY() + 1);
+        if (e.getKeyChar() == 'o')
+            addActor("jokhn.png", 4, 4);
     }
 
     @Override

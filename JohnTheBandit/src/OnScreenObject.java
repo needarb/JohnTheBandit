@@ -2,13 +2,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
+ * Object with image to display on screen as well as image's location
  * Created by needa_000 on 12/23/2014.
  */
 public abstract class OnScreenObject
 {
     private int ZLayer;
 
-    public abstract java.awt.Image getImageToDisplay();
 
     protected int x;
     protected int y;
@@ -21,6 +21,7 @@ public abstract class OnScreenObject
         this.zLayer = zLayer;
     }
 
+    public abstract java.awt.Image getImageToDisplay();
 
     public Point getLocation()
     {

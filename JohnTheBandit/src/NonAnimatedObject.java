@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
+ * Not moving OnScreenObject. Stores single image.
  * Created by needa_000 on 12/23/2014.
  */
 public class NonAnimatedObject extends OnScreenObject

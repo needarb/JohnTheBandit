@@ -2,6 +2,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 /**
+ * Moving OnScreenObject. Stores list of images and time between each image.
  * Created by needa_000 on 12/23/2014.
  */
 public class AnimatedObject extends OnScreenObject
@@ -33,6 +34,9 @@ public class AnimatedObject extends OnScreenObject
         return framesBetweenFrames;
     }
 
+    /**
+     * Changes to the next image. Loops back to first image if at the end.
+     */
     public void cycle()
     {
         frame++;
