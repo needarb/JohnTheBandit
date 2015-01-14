@@ -21,7 +21,7 @@ public abstract class OnScreenObject
         this.zLayer = zLayer;
     }
 
-    public abstract java.awt.Image getImageToDisplay();
+    public abstract Image getImageToDisplay();
 
     public Point getLocation()
     {
