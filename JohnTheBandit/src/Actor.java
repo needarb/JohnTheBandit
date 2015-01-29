@@ -22,6 +22,7 @@ public class Actor
     }
 
     /**
+     *
      * Sets the grid based x and y and queues the OnScreenObject to move next update
      * @param newX new grid x
      * @param newY new grid y
