@@ -28,6 +28,7 @@ public class Actor
      */
     public void setLocation(int newX, int newY)
     {
+
         this.x = newX;
         this.y = newY;
         playingField.getEngine().queueMoveObject(onScreenObject,newX*playingField.getTileWidth(),newY*playingField.getTileHeight());
